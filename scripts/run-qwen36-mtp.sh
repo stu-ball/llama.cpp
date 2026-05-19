@@ -19,6 +19,7 @@ THREADS="${LLAMA_THREADS:-$_PERF_CORES}"
 CTX_SIZE="${LLAMA_CTX_SIZE:-8192}"
 N_GPU_LAYERS="${LLAMA_N_GPU_LAYERS:-999}"
 SPEC_DRAFT_N_MAX="${LLAMA_SPEC_DRAFT_N_MAX:-2}"
+TEMP="${LLAMA_TEMP:-1.0}"
 HOST="${LLAMA_HOST:-127.0.0.1}"
 ALIAS="${LLAMA_ALIAS:-unsloth/Qwen3.6-27B-MTP-GGUF}"
 
@@ -47,6 +48,7 @@ echo "  port:   $PORT"
 echo "  ctx:    $CTX_SIZE"
 echo "  threads:$THREADS"
 echo "  draft:  $SPEC_DRAFT_N_MAX"
+echo "  temp:   $TEMP"
 echo
 
 exec "$BIN" \
@@ -60,7 +62,7 @@ exec "$BIN" \
   --ctx-size "$CTX_SIZE" \
   --spec-type draft-mtp \
   --spec-draft-n-max "$SPEC_DRAFT_N_MAX" \
-  --temp 0.7 \
+  --temp "$TEMP" \
   --top-p 0.8 \
   --top-k 20 \
   --presence-penalty 1.5 \

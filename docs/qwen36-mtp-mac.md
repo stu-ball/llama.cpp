@@ -63,6 +63,8 @@ Use these settings as a default starting point:
 
 These defaults were chosen after a measured sweep on Apple Silicon. The optimal `--spec-draft-n-max` value is hardware-dependent — run the sweep below on your own machine to confirm the best value.
 
+> **Temperature and MTP throughput**: The MTP draft heads were jointly trained at T=1.0, so `--temp 1.0` is the recommended value — it keeps the draft and target distributions most aligned, giving the highest acceptance rate. Lower temperatures (e.g. 0.7) sharpen both distributions but cause them to diverge from their trained relationship, reducing acceptance and collapsing throughput back toward single-token speed. The sweep was measured at `--temp 0` (greedy) which also gives high acceptance but forces deterministic output; T=1.0 is the right default for everyday use.
+
 ## Run the server
 
 Use the helper script from this repo:
@@ -79,7 +81,7 @@ Any setting can be overridden at launch time via environment variables:
 LLAMA_SPEC_DRAFT_N_MAX=3 LLAMA_CTX_SIZE=4096 ./scripts/run-qwen36-mtp.sh
 ```
 
-Available overrides: `LLAMA_SERVER_BIN`, `LLAMA_MODEL`, `LLAMA_MMPROJ`, `LLAMA_PORT`, `LLAMA_THREADS`, `LLAMA_CTX_SIZE`, `LLAMA_N_GPU_LAYERS`, `LLAMA_SPEC_DRAFT_N_MAX`, `LLAMA_HOST`.
+Available overrides: `LLAMA_SERVER_BIN`, `LLAMA_MODEL`, `LLAMA_MMPROJ`, `LLAMA_PORT`, `LLAMA_THREADS`, `LLAMA_CTX_SIZE`, `LLAMA_N_GPU_LAYERS`, `LLAMA_SPEC_DRAFT_N_MAX`, `LLAMA_TEMP`, `LLAMA_HOST`.
 
 Alternatively, create a `.env` file in the repo root and the script will source it automatically:
 
