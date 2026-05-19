@@ -97,7 +97,9 @@ Benchmark results on M4 Pro (24 GB unified memory, Q2_K_XL, single slot, `--reas
 
 Despite near-perfect draft acceptance, MTP is currently **slower** on Apple Silicon. The Metal backend evaluates the MTP head with overhead comparable to a main-model forward pass, so the memory-bandwidth bottleneck is hit twice. NVIDIA CUDA GPUs handle batched speculative verification more efficiently, which is where Unsloth's 1.4–2.2× speedup figures come from.
 
-MTP is disabled by default in the launch script. Re-enable it with `LLAMA_MTP=1` and retest on future llama.cpp builds as Metal MTP support improves.
+There is also a **memory cost**: the MTP head weights are loaded into unified memory even when MTP is disabled, consuming roughly 1 GB that could otherwise go to a larger KV cache or context window. A standard non-MTP GGUF of equivalent quality and quant would therefore be preferable on Apple Silicon — faster, and ~1 GB lighter.
+
+If you want to stay with this GGUF (e.g. you already have it downloaded, or you plan to move to a CUDA machine later), keep `LLAMA_MTP=0` and retest with `LLAMA_MTP=1` on future llama.cpp builds as Metal MTP support improves.
 
 ## Run the server
 

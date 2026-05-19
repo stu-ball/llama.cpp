@@ -19,8 +19,9 @@ THREADS="${LLAMA_THREADS:-$_PERF_CORES}"
 CTX_SIZE="${LLAMA_CTX_SIZE:-8192}"
 N_GPU_LAYERS="${LLAMA_N_GPU_LAYERS:-999}"
 SPEC_DRAFT_N_MAX="${LLAMA_SPEC_DRAFT_N_MAX:-2}"
-# MTP is disabled by default on Apple Silicon — see docs/qwen36-mtp-mac.md for context
-# Set LLAMA_MTP=1 to enable it if you want to test on a future llama.cpp build
+# MTP is disabled — on Apple Silicon it is slower than baseline AND wastes ~1 GB of unified
+# memory on unused weights. A standard non-MTP GGUF is the better choice for Metal inference.
+# Set LLAMA_MTP=1 only to test future llama.cpp Metal improvements.
 MTP="${LLAMA_MTP:-0}"
 TEMP="${LLAMA_TEMP:-0.7}"
 HOST="${LLAMA_HOST:-127.0.0.1}"
