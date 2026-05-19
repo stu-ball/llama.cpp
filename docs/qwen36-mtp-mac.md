@@ -59,7 +59,7 @@ Use these settings as a default starting point:
 - context: `--ctx-size 8192`
 - GPU layers: `--n-gpu-layers 999`
 - threads: `--threads <N>` — auto-detected from your chip's performance core count
-- thinking disabled: `--chat-template-kwargs '{"enable_thinking":false}'`
+- thinking disabled: `--reasoning off`
 
 These defaults were chosen after a measured sweep on Apple Silicon. The optimal `--spec-draft-n-max` value is hardware-dependent — run the sweep below on your own machine to confirm the best value.
 
@@ -82,6 +82,8 @@ LLAMA_SPEC_DRAFT_N_MAX=3 LLAMA_CTX_SIZE=4096 ./scripts/run-qwen36-mtp.sh
 ```
 
 Available overrides: `LLAMA_SERVER_BIN`, `LLAMA_MODEL`, `LLAMA_MMPROJ`, `LLAMA_PORT`, `LLAMA_THREADS`, `LLAMA_CTX_SIZE`, `LLAMA_N_GPU_LAYERS`, `LLAMA_SPEC_DRAFT_N_MAX`, `LLAMA_TEMP`, `LLAMA_HOST`.
+
+To enable thinking mode (uses `--reasoning on` and `--temp 1.0` per Unsloth's guide):
 
 Alternatively, create a `.env` file in the repo root and the script will source it automatically:
 

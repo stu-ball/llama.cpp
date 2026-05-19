@@ -62,9 +62,9 @@ exec "$BIN" \
   --ctx-size "$CTX_SIZE" \
   --spec-type draft-mtp \
   --spec-draft-n-max "$SPEC_DRAFT_N_MAX" \
+  --reasoning off \
   --temp "$TEMP" \
   --top-p 0.8 \
   --top-k 20 \
   --presence-penalty 1.5 \
-  --min-p 0.0 \
-  --chat-template-kwargs '{"enable_thinking":false}'
+  --min-p 0.0
