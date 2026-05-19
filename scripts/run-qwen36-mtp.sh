@@ -12,7 +12,7 @@ fi
 
 BIN="${LLAMA_SERVER_BIN:-$ROOT_DIR/build/bin/llama-server}"
 MODEL="${LLAMA_MODEL:-$HOME/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-UD-Q2_K_XL.gguf}"
-MMPROJ="${LLAMA_MMPROJ:-$HOME/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf}"
+MMPROJ="${LLAMA_MMPROJ:-}"  # empty by default; set to enable vision/multimodal (disables MTP)
 PORT="${LLAMA_PORT:-8001}"
 _PERF_CORES=$(sysctl -n hw.perflevel0.physicalcpu 2>/dev/null || sysctl -n hw.physicalcpu 2>/dev/null || echo 8)
 THREADS="${LLAMA_THREADS:-$_PERF_CORES}"
@@ -34,7 +34,7 @@ if [[ ! -f "$MODEL" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$MMPROJ" ]]; then
+if [[ -n "$MMPROJ" && ! -f "$MMPROJ" ]]; then
   echo "mmproj file not found: $MMPROJ" >&2
   exit 1
 fi
@@ -42,7 +42,7 @@ fi
 echo "Starting tuned Qwen3.6-27B MTP server"
 echo "  binary: $BIN"
 echo "  model:  $MODEL"
-echo "  mmproj: $MMPROJ"
+echo "  mmproj: ${MMPROJ:-disabled (MTP active)}"
 echo "  host:   $HOST"
 echo "  port:   $PORT"
 echo "  ctx:    $CTX_SIZE"
@@ -55,7 +55,7 @@ exec "$BIN" \
   --host "$HOST" \
   --port "$PORT" \
   --model "$MODEL" \
-  --mmproj "$MMPROJ" \
+  ${MMPROJ:+--mmproj "$MMPROJ"} \
   --alias "$ALIAS" \
   --n-gpu-layers "$N_GPU_LAYERS" \
   --threads "$THREADS" \
