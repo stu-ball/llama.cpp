@@ -64,6 +64,9 @@ exec "$BIN" \
   --n-gpu-layers "$N_GPU_LAYERS" \
   --threads "$THREADS" \
   --ctx-size "$CTX_SIZE" \
+  --flash-attn \
+  --cache-type-k f16 \
+  --cache-type-v q8_0 \
   ${MTP:+--spec-type draft-mtp} \
   ${MTP:+--spec-draft-n-max "$SPEC_DRAFT_N_MAX"} \
   --reasoning off \

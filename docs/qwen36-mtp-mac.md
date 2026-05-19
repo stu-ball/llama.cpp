@@ -10,8 +10,9 @@ This document captures the exact build, tuning, and launch steps for running `un
 - Local model files already present:
   - `~/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-UD-Q2_K_XL.gguf`
   - `~/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf` (vision; not needed for text-only MTP inference)
-- Confirmed baseline generation speed without MTP: **~11 t/s** on M4 Pro with Q2_K_XL at single slot.
-- MTP draft acceptance rate is very high (~97 %) but generation is currently slower with MTP enabled on Apple Silicon (9 t/s vs 11 t/s baseline). See [MTP note](#mtp-on-apple-silicon) below.
+- Optimization sweep with `llama-bench` identified `--flash-attn --cache-type-v q8_0` as the fastest config.
+- Confirmed decode speed: **10.45 t/s** (vs 9.60 t/s baseline = **+8.9%**).
+- MTP draft acceptance rate is very high (~97 %) but generation is currently slower with MTP enabled on Apple Silicon (see [MTP note](#mtp-on-apple-silicon) below).
 - `llama-server` API health and chat completion were both verified successfully.
 
 ## One-time build from source
@@ -56,16 +57,32 @@ Use these settings as a default starting point:
 - model: `Qwen3.6-27B-UD-Q2_K_XL.gguf`
 - multimodal projector: not loaded (the `mmproj-F16.gguf` is a CLIP vision projector; loading it suppresses speculative decoding entirely)
 - MTP: disabled by default — enable with `LLAMA_MTP=1` (see [MTP note](#mtp-on-apple-silicon))
-- draft tokens: `--spec-draft-n-max 2` (used when MTP is enabled)
+- flash attention: `--flash-attn` (**enabled** — free at short context, measurably better at long context)
+- KV cache: `--cache-type-k f16 --cache-type-v q8_0` (**+8.9% decode speed**, no perceptible quality loss)
 - context: `--ctx-size 8192`
 - GPU layers: `--n-gpu-layers 999`
-- threads: `--threads <N>` — auto-detected from your chip's performance core count
-- thinking disabled: `--reasoning off` (replaces the deprecated `--chat-template-kwargs '{"enable_thinking":false}'`)
+- threads: `--threads <N>` — auto-detected from perf cores (irrelevant at -ngl 999; kept for CPU fallback)
+- thinking disabled: `--reasoning off`
 
 > **Temperature guidance (per Unsloth's official docs)**:
 > - Non-thinking / instruct mode (`--reasoning off`): use `--temp 0.7` for general tasks.
 > - Thinking mode (`--reasoning on`): use `--temp 1.0` for general tasks, `--temp 0.6` for precise coding.
 > The script defaults to `--temp 0.7` (non-thinking mode).
+
+### Optimization benchmark (M4 Pro, Q2_K_XL, llama-bench tg200, pp32)
+
+| Config | tg200 t/s | vs baseline |
+|--------|----------:|-----------:|
+| Baseline (f16 KV, no flash attn) | 9.60 | — |
+| `--flash-attn` only | 9.68 | +0.8% |
+| `--cache-type-v q8_0` + `-fa` | **10.45** | **+8.9%** |
+| `--cache-type-v q4_0` + `-fa` | 10.20 | +6.3% |
+| `--cache-type-k q8_0 --cache-type-v q8_0` + `-fa` | 9.55 | −0.5% |
+| MTP n=2 (draft acceptance 97.8 %) | 9.38 | −2.3% |
+
+Key finding: **V-cache quantization helps, K-cache quantization hurts.** Symmetric KV quantization (q8_0/q8_0) is no better than baseline because K-cache dequant overhead cancels the V-cache bandwidth saving. Flash attention is largely free at short context but beneficial at 2048+ tokens.
+
+Thread count (1–8) has no impact on decode speed when `-ngl 999` offloads all layers to Metal.
 
 ## MTP on Apple Silicon
 
